@@ -15,4 +15,10 @@ router.get('/', deviceController.getDevice);
 // PUT /api/devices - Update device
 router.put('/', deviceController.updateDevice);
 
+// PUT /api/devices/last-played - Save last played channel
+router.put('/last-played', deviceController.saveLastPlayed);
+
+// GET /api/devices/last-played - Get last played channel
+router.get('/last-played', deviceController.getLastPlayed);
+
 module.exports = router;

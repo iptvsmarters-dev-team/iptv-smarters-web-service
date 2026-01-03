@@ -73,6 +73,31 @@ module.exports = (sequelize) => {
         lastSeen: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW
+        },
+        // Last played channel for resume functionality
+        lastPlayedChannelName: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        lastPlayedChannelUrl: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
+        lastPlayedChannelGroup: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        lastPlayedPlaylistId: {
+            type: DataTypes.UUID,
+            allowNull: true
+        },
+        lastPlayedPlaylistName: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        lastPlayedPlaylistUrl: {
+            type: DataTypes.TEXT,
+            allowNull: true
         }
     }, {
         tableName: 'devices',

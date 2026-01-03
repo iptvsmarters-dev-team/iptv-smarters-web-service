@@ -97,8 +97,77 @@ const updateDevice = async (req, res) => {
     }
 };
 
+// Save last played channel
+const saveLastPlayed = async (req, res) => {
+    try {
+        const { device_key } = req.deviceInfo;
+        const { channel, playlist } = req.body;
+
+        const device = await Device.findOne({ where: { deviceKey: device_key } });
+
+        if (!device) {
+            return res.status(404).json({ error: 'Device not found' });
+        }
+
+        // Update last played info
+        if (channel) {
+            device.lastPlayedChannelName = channel.name;
+            device.lastPlayedChannelUrl = channel.url;
+            device.lastPlayedChannelGroup = channel.group || null;
+        }
+
+        if (playlist) {
+            device.lastPlayedPlaylistId = playlist.id || null;
+            device.lastPlayedPlaylistName = playlist.name;
+            device.lastPlayedPlaylistUrl = playlist.url;
+        }
+
+        device.lastSeen = new Date();
+        await device.save();
+
+        res.json({ success: true, message: 'Last played saved' });
+    } catch (error) {
+        console.error('Save last played error:', error);
+        res.status(500).json({ error: 'Failed to save last played' });
+    }
+};
+
+// Get last played channel
+const getLastPlayed = async (req, res) => {
+    try {
+        const { device_key } = req.deviceInfo;
+
+        const device = await Device.findOne({ where: { deviceKey: device_key } });
+
+        if (!device) {
+            return res.status(404).json({ error: 'Device not found' });
+        }
+
+        // Return last played info
+        const lastPlayed = {
+            channel: device.lastPlayedChannelUrl ? {
+                name: device.lastPlayedChannelName,
+                url: device.lastPlayedChannelUrl,
+                group: device.lastPlayedChannelGroup
+            } : null,
+            playlist: device.lastPlayedPlaylistUrl ? {
+                id: device.lastPlayedPlaylistId,
+                name: device.lastPlayedPlaylistName,
+                url: device.lastPlayedPlaylistUrl
+            } : null
+        };
+
+        res.json({ success: true, lastPlayed });
+    } catch (error) {
+        console.error('Get last played error:', error);
+        res.status(500).json({ error: 'Failed to get last played' });
+    }
+};
+
 module.exports = {
     registerDevice,
     getDevice,
-    updateDevice
+    updateDevice,
+    saveLastPlayed,
+    getLastPlayed
 };
