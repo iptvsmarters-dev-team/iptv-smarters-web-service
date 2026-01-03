@@ -5,12 +5,16 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
 const path = require('path');
+const { createServer } = require('http');
+const { WebSocketServer } = require('ws');
 
 const deviceRoutes = require('./routes/deviceRoutes');
 const playlistRoutes = require('./routes/playlistRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const streamRoutes = require('./routes/streamRoutes');
 const qrRoutes = require('./routes/qrRoutes');
+const hangmanRoutes = require('./routes/hangmanRoutes');
+const { setupHangmanWebSocket } = require('./websocket/hangmanWs');
 const { sequelize } = require('./models');
 
 // Jobs
@@ -90,8 +94,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve frontend static files
-const frontendPath = '/Users/Apple/workspace/IPTVSmartersOfficial';
+const frontendPath = '/Users/Apple/Documents/IPTV APPS/Samsung/iptv-smarters-samsung-ui';
 app.use(express.static(frontendPath));
+
+// Serve games static files
+const gamesPath = '/Users/Apple/Documents/IPTV APPS/IPTV-smarters-tv-games/samsung';
+app.use('/games', express.static(gamesPath));
 
 // Routes
 app.use('/api/devices', deviceRoutes);
@@ -99,6 +107,7 @@ app.use('/api/playlists', playlistRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/stream', streamRoutes);
 app.use('/api/qr', qrRoutes);
+app.use('/api/games/hangman', hangmanRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -162,6 +171,23 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
+// Create HTTP server for both Express and WebSocket
+const server = createServer(app);
+
+// Setup WebSocket server for Hangman game
+const wss = new WebSocketServer({
+    server,
+    path: '/ws/hangman'
+});
+
+// Make wss globally available for broadcasting
+global.wss = wss;
+
+// Initialize Hangman WebSocket handlers
+setupHangmanWebSocket(wss);
+
+console.log('WebSocket server initialized at /ws/hangman');
+
 // Start server
 async function startServer() {
     try {
@@ -171,10 +197,11 @@ async function startServer() {
         await sequelize.sync({ alter: true });
         console.log('Database synced (schema updated)');
 
-        app.listen(PORT, () => {
+        server.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
             console.log(`Health check: http://localhost:${PORT}/health`);
             console.log(`Privacy policy: http://localhost:${PORT}/privacy`);
+            console.log(`WebSocket: ws://localhost:${PORT}/ws/hangman`);
         });
     } catch (error) {
         console.error('Unable to start server:', error);
