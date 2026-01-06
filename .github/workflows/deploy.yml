@@ -26,7 +26,7 @@ jobs:
       - name: Deploy to API Server 1
         run: |
           echo "🚀 Deploying to API Server 1..."
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no linuxuser@${{ secrets.API_SERVER_1_IP }} << 'EOF'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no linuxuser@${{ secrets.API_SERVER_1 }} << 'EOF'
             set -e
             cd ~/smarters-official-iptv-apps/iptv-smarters-backend
             echo "  📥 Pulling latest code..."
@@ -41,7 +41,7 @@ jobs:
       - name: Deploy to API Server 2
         run: |
           echo "🚀 Deploying to API Server 2..."
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no linuxuser@${{ secrets.API_SERVER_2_IP }} << 'EOF'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no linuxuser@${{ secrets.API_SERVER_2 }} << 'EOF'
             set -e
             cd ~/smarters-official-iptv-apps/iptv-smarters-backend
             echo "  📥 Pulling latest code..."
