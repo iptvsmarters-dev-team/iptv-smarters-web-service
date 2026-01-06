@@ -43,7 +43,7 @@ jobs:
           echo "🚀 Deploying to API Server 2..."
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no linuxuser@${{ secrets.API_SERVER_2 }} << 'EOF'
             set -e
-            cd ~/smarters-official-iptv-apps/iptv-smarters-backend
+            cd ~/smarters-official-iptv-apps/iptv-smarters-web-service/iptv-smarters-backend
             echo "  📥 Pulling latest code..."
             git pull origin main
             echo "  📦 Installing dependencies..."
