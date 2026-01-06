@@ -10,8 +10,11 @@ router.post('/session', async (req, res) => {
         const session = HangmanSessionService.createSession();
 
         // Generate QR code URL (mobile page URL)
-        const baseUrl = process.env.BASE_URL || `http://${req.headers.host}`;
-        const mobileUrl = `${baseUrl}/games/hangman/mobile.html?session=${session.sessionId}`;
+        console.log('GAME_BASE_URL from env:', process.env.GAME_BASE_URL);
+        console.log('req.headers.host:', req.headers.host);
+        const baseUrl = process.env.GAME_BASE_URL || `http://${req.headers.host}`;
+        console.log('Using baseUrl:', baseUrl);
+        const mobileUrl = `${baseUrl}/hangman/mobile.html?session=${session.sessionId}`;
 
         // Generate QR code as data URL
         const qrCodeDataUrl = await QRCode.toDataURL(mobileUrl, {
