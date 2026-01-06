@@ -12,9 +12,11 @@ router.post('/session', async (req, res) => {
         // Generate QR code URL (mobile page URL)
         console.log('GAME_BASE_URL from env:', process.env.GAME_BASE_URL);
         console.log('req.headers.host:', req.headers.host);
-        const baseUrl = process.env.GAME_BASE_URL || `http://${req.headers.host}`;
-        console.log('Using baseUrl:', baseUrl);
-        const mobileUrl = `${baseUrl}/hangman/mobile.html?session=${session.sessionId}`;
+        const gamesBaseUrl = process.env.GAME_BASE_URL || `http://${req.headers.host}`;
+        const backendBaseUrl = `http://${req.headers.host}`;
+        console.log('Using gamesBaseUrl:', gamesBaseUrl);
+        console.log('Using backendBaseUrl:', backendBaseUrl);
+        const mobileUrl = `${gamesBaseUrl}/hangman/mobile.html?session=${session.sessionId}&backend=${encodeURIComponent(backendBaseUrl)}`;
 
         // Generate QR code as data URL
         const qrCodeDataUrl = await QRCode.toDataURL(mobileUrl, {
