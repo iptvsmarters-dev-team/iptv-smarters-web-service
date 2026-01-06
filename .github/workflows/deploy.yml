@@ -20,8 +20,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.API_SERVER_1_IP }} >> ~/.ssh/known_hosts
-          ssh-keyscan -H ${{ secrets.API_SERVER_2_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.API_SERVER_1 }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.API_SERVER_2 }} >> ~/.ssh/known_hosts
 
       - name: Deploy to API Server 1
         run: |
