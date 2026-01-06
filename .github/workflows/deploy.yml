@@ -1,0 +1,61 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main  # Deploy when pushing to main branch
+  workflow_dispatch:  # Allow manual deployment from GitHub UI
+
+jobs:
+  deploy:
+    name: Deploy to Vultr Servers
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.API_SERVER_1_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.API_SERVER_2_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to API Server 1
+        run: |
+          echo "🚀 Deploying to API Server 1..."
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no linuxuser@${{ secrets.API_SERVER_1_IP }} << 'EOF'
+            set -e
+            cd ~/smarters-official-iptv-apps/iptv-smarters-backend
+            echo "  📥 Pulling latest code..."
+            git pull origin main
+            echo "  📦 Installing dependencies..."
+            npm install --omit=dev
+            echo "  🔄 Restarting application..."
+            pm2 restart smarters-official-iptv-api
+            echo "  ✅ API Server 1 deployed successfully!"
+          EOF
+
+      - name: Deploy to API Server 2
+        run: |
+          echo "🚀 Deploying to API Server 2..."
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no linuxuser@${{ secrets.API_SERVER_2_IP }} << 'EOF'
+            set -e
+            cd ~/smarters-official-iptv-apps/iptv-smarters-backend
+            echo "  📥 Pulling latest code..."
+            git pull origin main
+            echo "  📦 Installing dependencies..."
+            npm install --omit=dev
+            echo "  🔄 Restarting application..."
+            pm2 restart smarters-official-iptv-api2
+            echo "  ✅ API Server 2 deployed successfully!"
+          EOF
+
+      - name: Verify Deployment
+        run: |
+          echo "🎉 Deployment to all servers completed!"
+          echo "Next steps:"
+          echo "  - Check server status: ssh linuxuser@server-ip 'pm2 status'"
+          echo "  - View logs: ssh linuxuser@server-ip 'pm2 logs smarters-official-iptv-api --lines 20'"
