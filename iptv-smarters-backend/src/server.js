@@ -56,9 +56,12 @@ const corsOptions = {
             'http://127.0.0.1:8080',
             'http://127.0.0.1:3001',
             'file://',
-            // Add your production domain here
-            // 'https://your-domain.com'
         ];
+
+        // Add GAME_BASE_URL from .env if configured (for games server)
+        if (process.env.GAME_BASE_URL) {
+            allowedOrigins.push(process.env.GAME_BASE_URL);
+        }
 
         // Allow Tizen app origins (they use file:// or widget://)
         if (origin.startsWith('file://') || origin.startsWith('widget://')) {
@@ -110,6 +113,8 @@ app.use(express.static(frontendPath, {
 }));
 
 // Serve games static files
+// In production: serve from public/games directory (deployed games)
+// In development: serve from both public/games (for mobile.html) and local games repo
 const gamesPath = process.env.NODE_ENV === 'production'
     ? path.join(__dirname, '..', 'public', 'games')
     : '/Users/Apple/Documents/IPTV APPS/IPTV-smarters-tv-games/samsung';
@@ -118,6 +123,14 @@ app.use('/games', express.static(gamesPath, {
     maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
     etag: true
 }));
+
+// Also serve public/games in development (for mobile.html)
+if (process.env.NODE_ENV !== 'production') {
+    app.use('/games', express.static(path.join(__dirname, '..', 'public', 'games'), {
+        maxAge: 0,
+        etag: true
+    }));
+}
 
 // Routes
 app.use('/api/devices', deviceRoutes);
