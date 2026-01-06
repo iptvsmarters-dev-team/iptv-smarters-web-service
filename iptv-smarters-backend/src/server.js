@@ -220,6 +220,7 @@ async function startServer() {
             console.log(`Health check: http://localhost:${PORT}/health`);
             console.log(`Privacy policy: http://localhost:${PORT}/privacy`);
             console.log(`WebSocket: ws://localhost:${PORT}/ws/hangman`);
+            console.log('Deployment test');
         });
     } catch (error) {
         console.error('Unable to start server:', error);
