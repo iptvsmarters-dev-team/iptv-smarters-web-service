@@ -94,12 +94,30 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve frontend static files
-const frontendPath = '/Users/Apple/Documents/IPTV APPS/Samsung/iptv-smarters-samsung-ui';
-app.use(express.static(frontendPath));
+const frontendPath = process.env.NODE_ENV === 'production'
+    ? path.join(__dirname, '..', 'public', 'frontend')
+    : '/Users/Apple/Documents/IPTV APPS/Samsung/iptv-smarters-samsung-ui';
+
+app.use(express.static(frontendPath, {
+    maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
+    etag: true,
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
+            // Don't cache HTML files
+            res.setHeader('Cache-Control', 'no-cache');
+        }
+    }
+}));
 
 // Serve games static files
-const gamesPath = '/Users/Apple/Documents/IPTV APPS/IPTV-smarters-tv-games/samsung';
-app.use('/games', express.static(gamesPath));
+const gamesPath = process.env.NODE_ENV === 'production'
+    ? path.join(__dirname, '..', 'public', 'games')
+    : '/Users/Apple/Documents/IPTV APPS/IPTV-smarters-tv-games/samsung';
+
+app.use('/games', express.static(gamesPath, {
+    maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
+    etag: true
+}));
 
 // Routes
 app.use('/api/devices', deviceRoutes);
