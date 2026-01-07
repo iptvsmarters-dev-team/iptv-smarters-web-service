@@ -15,7 +15,7 @@ router.post('/session', async (req, res) => {
         const backendBaseUrl = `http://${req.headers.host}`;
         console.log('Using gamesBaseUrl:', gamesBaseUrl);
         console.log('Using backendBaseUrl:', backendBaseUrl);
-        const mobileUrl = `${gamesBaseUrl}/hangman/mobile.html?session=${session.sessionId}&backend=${encodeURIComponent(backendBaseUrl)}`;
+        const mobileUrl = `${gamesBaseUrl}/games/hangman/mobile.html?session=${session.sessionId}&backend=${encodeURIComponent(backendBaseUrl)}`;
 
         res.json({
             success: true,
