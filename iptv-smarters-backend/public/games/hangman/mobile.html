@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hangman - Enter Your Word</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0F1115 0%, #1A1D23 100%);
+            color: #FFFFFF;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #18C2B8;
+            margin-bottom: 10px;
+        }
+
+        .player-badge {
+            display: inline-block;
+            background: linear-gradient(145deg, #18C2B8, #15A89E);
+            color: #0F1115;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .player-badge.player1 {
+            background: linear-gradient(145deg, #4CAF50, #388E3C);
+            color: white;
+        }
+
+        .player-badge.player2 {
+            background: linear-gradient(145deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        .status-message {
+            font-size: 18px;
+            color: #888;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .waiting-animation {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 30px 0;
+        }
+
+        .waiting-dot {
+            width: 12px;
+            height: 12px;
+            background: #18C2B8;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .waiting-dot:nth-child(1) { animation-delay: -0.32s; }
+        .waiting-dot:nth-child(2) { animation-delay: -0.16s; }
+        .waiting-dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background: #1A1D23;
+            border: 2px solid #2A2D35;
+            border-radius: 12px;
+            color: #FFC857;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #18C2B8;
+        }
+
+        .form-group input::placeholder {
+            color: #555;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .char-count {
+            font-size: 12px;
+            color: #555;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .char-count.error {
+            color: #F44336;
+        }
+
+        .char-count.valid {
+            color: #4CAF50;
+        }
+
+        .hint-note {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(145deg, #18C2B8, #15A89E);
+            border: none;
+            border-radius: 12px;
+            color: #0F1115;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success-screen {
+            display: none;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            font-size: 24px;
+            font-weight: 600;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+
+        .success-submessage {
+            font-size: 16px;
+            color: #888;
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #F44336;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Connection error screen */
+        .error-screen {
+            display: none;
+        }
+
+        .error-screen .error-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .error-screen .error-title {
+            font-size: 20px;
+            color: #F44336;
+            margin-bottom: 10px;
+        }
+
+        .retry-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #2A2D35;
+            border: 2px solid #18C2B8;
+            border-radius: 8px;
+            color: #18C2B8;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Connecting Screen -->
+        <div id="connecting-screen">
+            <div class="logo">Hangman</div>
+            <div class="status-message">Connecting to game...</div>
+            <div class="waiting-animation">
+                <div class="waiting-dot"></div>
+                <div class="waiting-dot"></div>
+                <div class="waiting-dot"></div>
+            </div>
+        </div>
+
+        <!-- Waiting Screen (for P2 waiting for P1's word) -->
+        <div id="waiting-screen" class="hidden">
+            <div class="logo">Hangman</div>
+            <div class="player-badge" id="waiting-badge">Player 2</div>
+            <div class="status-message" id="waiting-message">Waiting for Player 1 to enter their word...</div>
+            <div class="waiting-animation">
+                <div class="waiting-dot"></div>
+                <div class="waiting-dot"></div>
+                <div class="waiting-dot"></div>
+            </div>
+        </div>
+
+        <!-- Word Entry Form -->
+        <div id="form-screen" class="hidden">
+            <div class="logo">Hangman</div>
+            <div class="player-badge" id="player-badge">Player 1</div>
+
+            <div id="error-message" class="error-message"></div>
+
+            <form id="word-form">
+                <div class="form-group">
+                    <label for="word">Your Secret Word</label>
+                    <input
+                        type="text"
+                        id="word"
+                        name="word"
+                        placeholder="Enter a word (2-12 letters)"
+                        maxlength="12"
+                        autocomplete="off"
+                        autocapitalize="characters"
+                        pattern="[A-Za-z]+"
+                        required
+                    >
+                    <div class="char-count" id="char-count">0/12 characters</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="hint">Hint (Optional)</label>
+                    <input
+                        type="text"
+                        id="hint"
+                        name="hint"
+                        placeholder="Give a hint to help guess"
+                        maxlength="100"
+                        autocomplete="off"
+                    >
+                    <div class="hint-note">Help the other player guess your word</div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submit-btn" disabled>
+                    Submit Word
+                </button>
+            </form>
+        </div>
+
+        <!-- Success Screen -->
+        <div id="success-screen" class="success-screen">
+            <div class="success-icon">✓</div>
+            <div class="success-message">Word Submitted!</div>
+            <div class="success-submessage" id="success-submessage">Waiting for Player 2...</div>
+        </div>
+
+        <!-- Look at TV Screen -->
+        <div id="lookatv-screen" class="hidden">
+            <div class="logo">Hangman</div>
+            <div class="success-icon">📺</div>
+            <div class="success-message">Look at the TV!</div>
+            <div class="success-submessage">The game is starting...</div>
+        </div>
+
+        <!-- Error Screen -->
+        <div id="error-screen" class="error-screen">
+            <div class="error-icon">⚠️</div>
+            <div class="error-title">Connection Error</div>
+            <div class="status-message" id="error-text">Could not connect to the game.</div>
+            <button class="retry-btn" onclick="location.reload()">Retry</button>
+        </div>
+    </div>
+
+    <script>
+        // Performance tracking
+        const perfStart = performance.now();
+        console.log('[MOBILE PERF] Script started at:', new Date().toISOString());
+
+        // Get session ID and backend URL from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session');
+        const backendUrl = urlParams.get('backend') || window.location.origin;
+
+        console.log('[MOBILE PERF] URL Params:', {
+            sessionId,
+            backendUrl,
+            fullUrl: window.location.href
+        });
+
+        // State
+        let ws = null;
+        let playerNumber = null;
+        let canEnterWord = false;
+
+        // DOM elements
+        const connectingScreen = document.getElementById('connecting-screen');
+        const waitingScreen = document.getElementById('waiting-screen');
+        const formScreen = document.getElementById('form-screen');
+        const successScreen = document.getElementById('success-screen');
+        const lookAtTVScreen = document.getElementById('lookatv-screen');
+        const errorScreen = document.getElementById('error-screen');
+
+        const playerBadge = document.getElementById('player-badge');
+        const waitingBadge = document.getElementById('waiting-badge');
+        const waitingMessage = document.getElementById('waiting-message');
+        const wordInput = document.getElementById('word');
+        const hintInput = document.getElementById('hint');
+        const charCount = document.getElementById('char-count');
+        const submitBtn = document.getElementById('submit-btn');
+        const errorMessage = document.getElementById('error-message');
+        const successSubmessage = document.getElementById('success-submessage');
+
+        // Show/hide screens
+        function showScreen(screenId) {
+            [connectingScreen, waitingScreen, formScreen, successScreen, lookAtTVScreen, errorScreen]
+                .forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // Connect to WebSocket
+        function connect() {
+            const connectStart = performance.now();
+            console.log('[MOBILE PERF] Attempting WebSocket connection...');
+
+            if (!sessionId) {
+                showScreen('error-screen');
+                document.getElementById('error-text').textContent = 'Invalid game link. Please scan the QR code again.';
+                return;
+            }
+
+            // Extract host from backend URL (remove http:// or https://)
+            const backendHost = backendUrl.replace(/^https?:\/\//, '');
+            const wsProtocol = backendUrl.startsWith('https://') ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${backendHost}/ws/hangman?session=${sessionId}&type=mobile`;
+
+            console.log('[MOBILE PERF] WebSocket URL:', wsUrl);
+            console.log('[MOBILE PERF] Starting connection at:', new Date().toISOString());
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                const connectionTime = performance.now() - connectStart;
+                console.log('[MOBILE PERF] WebSocket CONNECTED in:', connectionTime.toFixed(2), 'ms');
+                console.log('[MOBILE PERF] Total time from page load:', (performance.now() - perfStart).toFixed(2), 'ms');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                showScreen('error-screen');
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket closed');
+            };
+        }
+
+        // Handle incoming messages
+        function handleMessage(data) {
+            console.log('[MOBILE PERF] Received message:', data.type, data);
+
+            switch (data.type) {
+                case 'assigned':
+                    console.log('[MOBILE PERF] Player assigned! Total time:', (performance.now() - perfStart).toFixed(2), 'ms');
+                    playerNumber = data.playerNumber;
+                    canEnterWord = data.canEnterWord;
+                    updatePlayerBadge();
+
+                    if (canEnterWord) {
+                        console.log('[MOBILE PERF] Showing form screen');
+                        showScreen('form-screen');
+                    } else {
+                        console.log('[MOBILE PERF] Showing waiting screen');
+                        showScreen('waiting-screen');
+                        waitingBadge.textContent = `Player ${playerNumber}`;
+                        waitingBadge.className = `player-badge player${playerNumber}`;
+                        waitingMessage.textContent = `Waiting for Player ${data.waitingFor} to enter their word...`;
+                    }
+                    break;
+
+                case 'wait-for-word':
+                    showScreen('waiting-screen');
+                    waitingMessage.textContent = `Waiting for Player ${data.waitingFor} to enter their word...`;
+                    break;
+
+                case 'your-turn':
+                    canEnterWord = true;
+                    showScreen('form-screen');
+                    updatePlayerBadge();
+                    break;
+
+                case 'word-accepted':
+                    showScreen('success-screen');
+                    if (playerNumber === 1) {
+                        successSubmessage.textContent = 'Waiting for Player 2 to enter their word...';
+                    } else {
+                        successSubmessage.textContent = 'Both words ready!';
+                    }
+                    break;
+
+                case 'game-started':
+                    showScreen('lookatv-screen');
+                    break;
+
+                case 'enter-words':
+                    // Play again - reset form
+                    wordInput.value = '';
+                    hintInput.value = '';
+                    updateCharCount();
+
+                    if (playerNumber === 1) {
+                        canEnterWord = true;
+                        showScreen('form-screen');
+                    } else {
+                        canEnterWord = false;
+                        showScreen('waiting-screen');
+                        waitingMessage.textContent = 'Waiting for Player 1 to enter their word...';
+                    }
+                    break;
+
+                case 'session-ended':
+                    showScreen('error-screen');
+                    document.getElementById('error-text').textContent = 'Game ended.';
+                    break;
+
+                case 'error':
+                    showError(data.message);
+                    break;
+            }
+        }
+
+        function updatePlayerBadge() {
+            playerBadge.textContent = `Player ${playerNumber}`;
+            playerBadge.className = `player-badge player${playerNumber}`;
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        // Word input validation
+        wordInput.addEventListener('input', (e) => {
+            // Only allow letters
+            e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase();
+            updateCharCount();
+        });
+
+        function updateCharCount() {
+            const len = wordInput.value.length;
+            charCount.textContent = `${len}/12 characters`;
+
+            if (len < 2) {
+                charCount.className = 'char-count error';
+                submitBtn.disabled = true;
+            } else if (len <= 12) {
+                charCount.className = 'char-count valid';
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Form submission
+        document.getElementById('word-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const word = wordInput.value.trim().toUpperCase();
+            const hint = hintInput.value.trim();
+
+            if (word.length < 2 || word.length > 12) {
+                showError('Word must be 2-12 letters');
+                return;
+            }
+
+            if (!/^[A-Z]+$/.test(word)) {
+                showError('Word can only contain letters');
+                return;
+            }
+
+            // Send word to server
+            ws.send(JSON.stringify({
+                type: 'submit-word',
+                word,
+                hint
+            }));
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+        });
+
+        // Start connection
+        console.log('[MOBILE PERF] Calling connect() at:', (performance.now() - perfStart).toFixed(2), 'ms from page start');
+        connect();
+        console.log('[MOBILE PERF] connect() called, WebSocket should be initializing...');
+    </script>
+</body>
+</html>
