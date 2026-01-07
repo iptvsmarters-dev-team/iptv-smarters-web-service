@@ -88,11 +88,14 @@ function handleMobileConnection(ws, sessionId) {
     ws.playerNumber = playerNumber;
 
     // Send player assignment to mobile
+    const bothPlayersJoined = result.session.player1.connected && result.session.player2.connected;
+
     ws.send(JSON.stringify({
         type: 'assigned',
         playerNumber,
-        canEnterWord: playerNumber === 1, // P1 can enter immediately, P2 waits
-        waitingFor: playerNumber === 2 ? 1 : null
+        canEnterWord: bothPlayersJoined, // Can enter if both joined
+        waitingFor: playerNumber === 1 ? 2 : 1,
+        bothPlayersJoined
     }));
 
     // Notify TV and other mobile players that player joined
@@ -101,12 +104,13 @@ function handleMobileConnection(ws, sessionId) {
         playerNumber
     }, ws.socketId);
 
-    // If P2 just joined and P1 hasn't submitted word yet, notify P2 to wait
-    if (playerNumber === 2 && !result.session.player1.word) {
-        ws.send(JSON.stringify({
-            type: 'wait-for-word',
-            waitingFor: 1
-        }));
+    // If both players have now joined, notify the other player they can also enter word
+    if (bothPlayersJoined) {
+        const otherPlayerNumber = playerNumber === 1 ? 2 : 1;
+        broadcastToPlayer(ws.wss || global.wss, sessionId, otherPlayerNumber, {
+            type: 'both-players-ready',
+            message: 'Both players connected! Enter your word!'
+        });
     }
 }
 
@@ -156,14 +160,6 @@ function handleWordSubmit(wss, ws, sessionId, data) {
         playerNumber,
         wordLength: result.wordLength
     });
-
-    // If P1 submitted, notify P2 they can now enter
-    if (playerNumber === 1) {
-        broadcastToPlayer(wss, sessionId, 2, {
-            type: 'your-turn',
-            message: 'Player 1 submitted. Enter your word!'
-        });
-    }
 
     // If both words submitted, send game-ready
     if (result.bothWordsSubmitted) {
