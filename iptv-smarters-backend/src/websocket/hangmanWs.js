@@ -95,11 +95,11 @@ function handleMobileConnection(ws, sessionId) {
         waitingFor: playerNumber === 2 ? 1 : null
     }));
 
-    // Notify TV that player joined
-    broadcastToTV(ws.wss || global.wss, sessionId, {
+    // Notify TV and other mobile players that player joined
+    broadcastToSession(ws.wss || global.wss, sessionId, {
         type: 'player-joined',
         playerNumber
-    });
+    }, ws.socketId);
 
     // If P2 just joined and P1 hasn't submitted word yet, notify P2 to wait
     if (playerNumber === 2 && !result.session.player1.word) {
@@ -137,10 +137,17 @@ function handleWordSubmit(wss, ws, sessionId, data) {
         return;
     }
 
+    // Get session to check other player status
+    const session = HangmanSessionService.getSession(sessionId);
+    const otherPlayerNumber = playerNumber === 1 ? 2 : 1;
+    const otherPlayer = session[`player${otherPlayerNumber}`];
+
     // Confirm to player that word was submitted
     ws.send(JSON.stringify({
         type: 'word-accepted',
-        wordLength: result.wordLength
+        wordLength: result.wordLength,
+        otherPlayerJoined: otherPlayer.connected,
+        otherPlayerNumber: otherPlayerNumber
     }));
 
     // Notify TV
