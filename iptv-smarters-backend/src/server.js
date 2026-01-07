@@ -12,7 +12,6 @@ const deviceRoutes = require('./routes/deviceRoutes');
 const playlistRoutes = require('./routes/playlistRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const streamRoutes = require('./routes/streamRoutes');
-const qrRoutes = require('./routes/qrRoutes');
 const hangmanRoutes = require('./routes/hangmanRoutes');
 const { setupHangmanWebSocket } = require('./websocket/hangmanWs');
 const { sequelize } = require('./models');
@@ -137,7 +136,6 @@ app.use('/api/devices', deviceRoutes);
 app.use('/api/playlists', playlistRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/stream', streamRoutes);
-app.use('/api/qr', qrRoutes);
 app.use('/api/games/hangman', hangmanRoutes);
 
 // Health check

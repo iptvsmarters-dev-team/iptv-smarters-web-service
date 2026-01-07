@@ -1,7 +1,6 @@
 // Hangman Game API Routes
 const express = require('express');
 const router = express.Router();
-const QRCode = require('qrcode');
 const HangmanSessionService = require('../services/hangmanSession');
 
 // Create a new game session
@@ -18,21 +17,10 @@ router.post('/session', async (req, res) => {
         console.log('Using backendBaseUrl:', backendBaseUrl);
         const mobileUrl = `${gamesBaseUrl}/hangman/mobile.html?session=${session.sessionId}&backend=${encodeURIComponent(backendBaseUrl)}`;
 
-        // Generate QR code as data URL
-        const qrCodeDataUrl = await QRCode.toDataURL(mobileUrl, {
-            width: 280,
-            margin: 2,
-            color: {
-                dark: '#0F1115',
-                light: '#FFFFFF'
-            }
-        });
-
         res.json({
             success: true,
             sessionId: session.sessionId,
             mobileUrl,
-            qrCodeDataUrl,
             status: session.status
         });
     } catch (error) {
