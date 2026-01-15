@@ -5,10 +5,18 @@ const { hashData, getRegionBucket } = require('../utils/privacy');
 const registerDevice = async (req, res) => {
     try {
         const { device_key, mac } = req.deviceInfo;
-        const { platform, deviceType, osVersion, appVersion, countryCode, networkType } = req.body;
+        const {
+            platform, deviceType, osVersion, appVersion, countryCode, networkType,
+            // Samsung ProductInfo fields
+            duid, modelName, firmwareVersion, screenResolution,
+            is4KSupported, is8KSupported, isOledSupported, panelType, panelResolution
+        } = req.body;
 
         // Hash MAC address for privacy
         const macAddressHash = hashData(mac);
+
+        // Hash DUID for privacy if provided
+        const duidHash = duid ? hashData(duid) : null;
 
         let device = await Device.findOne({ where: { deviceKey: device_key } });
 
@@ -22,7 +30,17 @@ const registerDevice = async (req, res) => {
                 appVersion,
                 countryCode,
                 regionBucket: getRegionBucket(countryCode),
-                networkType: networkType || 'unknown'
+                networkType: networkType || 'unknown',
+                // Samsung ProductInfo fields
+                duidHash,
+                modelName,
+                firmwareVersion,
+                screenResolution,
+                is4KSupported: is4KSupported || false,
+                is8KSupported: is8KSupported || false,
+                isOledSupported: isOledSupported || false,
+                panelType,
+                panelResolution
             });
         } else {
             // Update last seen and device info
@@ -31,6 +49,16 @@ const registerDevice = async (req, res) => {
             if (platform) device.platform = platform;
             if (appVersion) device.appVersion = appVersion;
             if (networkType) device.networkType = networkType;
+            // Update Samsung ProductInfo fields if provided
+            if (duidHash) device.duidHash = duidHash;
+            if (modelName) device.modelName = modelName;
+            if (firmwareVersion) device.firmwareVersion = firmwareVersion;
+            if (screenResolution) device.screenResolution = screenResolution;
+            if (is4KSupported !== undefined) device.is4KSupported = is4KSupported;
+            if (is8KSupported !== undefined) device.is8KSupported = is8KSupported;
+            if (isOledSupported !== undefined) device.isOledSupported = isOledSupported;
+            if (panelType) device.panelType = panelType;
+            if (panelResolution) device.panelResolution = panelResolution;
             await device.save();
         }
 
