@@ -98,6 +98,50 @@ module.exports = (sequelize) => {
         lastPlayedPlaylistUrl: {
             type: DataTypes.TEXT,
             allowNull: true
+        },
+        // Samsung ProductInfo API fields
+        // DUID (Device Unique ID) hashed for privacy
+        duidHash: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        // TV model name (e.g., "UN65JS9500")
+        modelName: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        // Firmware version
+        firmwareVersion: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        // Screen resolution (e.g., "1920x1080", "3840x2160")
+        screenResolution: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        // Panel capabilities
+        is4KSupported: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
+        is8KSupported: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
+        isOledSupported: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
+        // Panel type (OLED, QLED, LED, etc.)
+        panelType: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        // Real panel resolution from ProductInfo API
+        panelResolution: {
+            type: DataTypes.STRING,
+            allowNull: true
         }
     }, {
         tableName: 'devices',
